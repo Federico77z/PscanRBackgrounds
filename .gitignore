@@ -1,0 +1,9 @@
+.cache/
+staging/
+reports/*.tmp
+reports/annotation_check.tsv
+reports/generation_plan.tsv
+reports/promoter_universe_comparison.tsv
+reports/scientific_calibration.tsv
+reports/scientific_calibration_summary.tsv
+.Rhistory

@@ -1,0 +1,88 @@
+name: Background input check
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::BiocManager
+            bioc::GenomicFeatures
+            bioc::GenomeInfoDb
+            bioc::rtracklayer
+            bioc::txdbmaker
+
+      - name: Validate repository
+        run: |
+          Rscript tests/test_pipeline.R
+          Rscript scripts/backgrounds.R audit
+
+      - name: Check annotation inputs
+        run: Rscript scripts/backgrounds.R check
+
+      - name: Detect candidate changes
+        id: changes
+        run: |
+          Rscript -e 'x <- read.delim("reports/annotation_check.tsv"); cat(sprintf("changed=%s\n", if (any(x$candidate_change)) "true" else "false"), file = Sys.getenv("GITHUB_OUTPUT"), append = TRUE)'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: background-input-check
+          path: reports/annotation_check.tsv
+
+      - name: Open or update tracking issue
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = "Background annotation change detected";
+            const body = [
+              "The scheduled metadata check found one or more candidate annotation changes.",
+              "",
+              "Download `background-input-check` from this workflow run, then run:",
+              "```sh",
+              "Rscript scripts/backgrounds.R plan --cores=16",
+              "```",
+              "Only exact promoter or motif content changes will schedule scans.",
+              "",
+              `Workflow: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            ].join("\n");
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100
+            });
+            const existing = issues.find(issue => issue.title === title && !issue.pull_request);
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body
+              });
+            }
