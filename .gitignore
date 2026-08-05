@@ -5,5 +5,9 @@ reports/annotation_check.tsv
 reports/generation_plan.tsv
 reports/promoter_universe_comparison.tsv
 reports/scientific_calibration.tsv
+reports/scientific_calibration_replicates.tsv
 reports/scientific_calibration_summary.tsv
+reports/*.log
+reports/*.exit
+reports/run_*.sh
 .Rhistory

@@ -22,8 +22,9 @@ annotation, promoter-sequence, motif-content, scanner, and artifact hashes.
 
 Use the same Bioconductor release as the PscanR checkout. The pipeline requires
 PscanR plus `pkgload`, `txdbmaker`, `GenomicFeatures`, `GenomeInfoDb`,
-`Biostrings`, `BSgenome`, `rtracklayer`, `RSQLite`, `JASPAR2020`, `JASPAR2022`,
-and `JASPAR2024`. Install the supported genomes before a complete run:
+`Biostrings`, `BSgenome`, `rtracklayer`, `DBI`, `RMariaDB`, `RSQLite`,
+`JASPAR2020`, `JASPAR2022`, and `JASPAR2024`. Install the supported genomes
+before a complete run:
 
 ```r
 BiocManager::install(c(
@@ -67,6 +68,23 @@ The sibling PscanR checkout is used automatically. Set `PSCANR_SOURCE` when it
 is elsewhere. Generation refuses a dirty PscanR checkout because the exact
 scanner commit is part of provenance.
 
+Compare two complete immutable background versions before promoting a new
+release:
+
+```sh
+Rscript scripts/backgrounds.R compare \
+  --reference-version=1 \
+  --candidate-version=2 \
+  --benchmark-dir=../Test/pscan_benchmark/baseline_independent_current
+```
+
+The comparison checks all paired motif profiles, quantifies promoter-universe
+changes, and recalculates foreground Z scores, ranks, and FDR values from the
+stored benchmark tables without rescanning DNA. Reports and acceptance checks
+are written to `reports/comparison_v1_v2/`; the command exits unsuccessfully
+when a scientific compatibility threshold is exceeded. The benchmark argument
+is optional, but should be supplied for release validation.
+
 ## Scientific validation
 
 The calibration is intentionally separate from routine generation because it
@@ -83,10 +101,18 @@ under `reports/`; the command exits unsuccessfully when the configured
 calibration criteria do not pass. Treat that result as a publication blocker
 and review it before running `all`.
 
+The calibration keeps set sizes 5, 10, and 20 as small-set diagnostics and
+gates release compatibility from 50 promoters upward. Override the boundary with
+`--minimum-set-size=N`. False-positive-rate uncertainty is estimated across
+the independently sampled promoter sets, preserving correlation among motifs;
+per-motif KS uniformity remains a diagnostic rather than a release gate.
+
 ## Version and regeneration rules
 
 - Versions are immutable positive integers scoped to one background key.
 - Only validated entries may be marked `latest`.
+- A new version must pass the direct profile comparison and downstream
+  benchmark checks before it is published as the recommended release.
 - Regeneration occurs only when the final unique promoter-sequence hash, motif
   content hash, or explicit scoring specification changes.
 - Annotation or package metadata changes that leave computational inputs

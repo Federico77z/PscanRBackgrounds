@@ -8,6 +8,7 @@ script_path <- if (length(script_argument)) {
 }
 root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRUE)
 source(file.path(root, "R", "background_pipeline.R"))
+source(file.path(root, "R", "background_comparison.R"))
 
 usage <- function(status = 0L) {
     cat(paste(
@@ -19,15 +20,21 @@ usage <- function(status = 0L) {
         "  plan       Compute exact input hashes and write the regeneration plan",
         "  generate   Execute jobs from a new exact plan",
         "  validate   Validate all catalog artifacts and checksums",
+        "  compare    Compare two complete background versions",
         "  calibrate  Run null calibration and promoter-universe comparison",
         "  all        Plan, generate, then validate",
         "",
         "Options:",
         "  --cores=N               BiocParallel workers (default: 1)",
         "  --repetitions=N         Calibration repetitions (default: 1000)",
+        "  --minimum-set-size=N    Smallest gated calibration set (default: 50)",
         "  --assembly=A,B          Restrict assemblies",
         "  --jaspar=2020,2022      Restrict JASPAR releases",
         "  --window=450u_50d       Restrict promoter windows",
+        "  --reference-version=N  Reference version for compare (default: 1)",
+        "  --candidate-version=N  Candidate version for compare (default: 2)",
+        "  --benchmark-dir=PATH    Existing foreground benchmark for compare",
+        "  --output-dir=PATH       Comparison report directory",
         "  --force                 Regenerate selected jobs despite equal hashes",
         "  --help                  Show this help",
         sep = "\n"
@@ -40,7 +47,8 @@ if (!length(args) || any(args == "--help")) usage(if (length(args)) 0L else 1L)
 mode <- args[[1]]
 args <- args[-1]
 valid_modes <- c(
-    "audit", "check", "plan", "generate", "validate", "calibrate", "all"
+    "audit", "check", "plan", "generate", "validate", "compare",
+    "calibrate", "all"
 )
 if (!mode %in% valid_modes) {
     cat("Unknown mode: ", mode, "\n", sep = "")
@@ -55,7 +63,11 @@ option_value <- function(name) {
 }
 
 unknown <- args[!grepl(
-    "^--(cores|repetitions|assembly|jaspar|window)=|^--force$", args
+    paste0(
+        "^--(cores|repetitions|minimum-set-size|assembly|jaspar|window|",
+        "reference-version|",
+        "candidate-version|benchmark-dir|output-dir)=|^--force$"
+    ), args
 )]
 if (length(unknown)) bg_stop("Unknown options: ", paste(unknown, collapse = ", "))
 cores_value <- option_value("cores")
@@ -76,6 +88,38 @@ filters <- list(
     window = option_value("window")
 )
 force <- "--force" %in% args
+
+positive_integer_option <- function(name, default) {
+    value <- option_value(name)
+    result <- if (length(value)) suppressWarnings(as.integer(value[[1]])) else default
+    if (length(value) > 1L || is.na(result) || result < 1L) {
+        bg_stop("--", name, " must be one positive integer")
+    }
+    result
+}
+
+path_option <- function(name, default = NULL, must_work = FALSE) {
+    value <- option_value(name)
+    if (!length(value)) return(default)
+    if (length(value) != 1L || !nzchar(value[[1]])) {
+        bg_stop("--", name, " must be one non-empty path")
+    }
+    path <- value[[1]]
+    if (!grepl("^/", path)) path <- file.path(root, path)
+    normalizePath(path, mustWork = must_work)
+}
+
+reference_version <- positive_integer_option("reference-version", 1L)
+candidate_version <- positive_integer_option("candidate-version", 2L)
+minimum_set_size <- positive_integer_option("minimum-set-size", 50L)
+benchmark_dir <- path_option("benchmark-dir", must_work = TRUE)
+comparison_output <- path_option(
+    "output-dir",
+    file.path(
+        root, "reports",
+        sprintf("comparison_v%d_v%d", reference_version, candidate_version)
+    )
+)
 
 if (!nzchar(Sys.getenv("PSCANR_SOURCE", ""))) {
     sibling <- normalizePath(file.path(root, "..", "PscanR"), mustWork = FALSE)
@@ -127,10 +171,27 @@ if (mode == "audit") {
         quit(save = "no", status = 1L)
     }
     bg_message("Validated %d catalog artifacts", nrow(catalog))
+} else if (mode == "compare") {
+    result <- bg_compare_versions(
+        catalog = catalog,
+        root = root,
+        reference_version = reference_version,
+        candidate_version = candidate_version,
+        benchmark_dir = benchmark_dir,
+        output_dir = comparison_output
+    )
+    print(result$checks, row.names = FALSE)
+    bg_message("Comparison reports written to %s", comparison_output)
+    if (any(!result$checks$passed)) quit(save = "no", status = 1L)
 } else if (mode == "calibrate") {
-    result <- bg_calibrate(config, root, filters, cores, repetitions)
+    result <- bg_calibrate(
+        config, root, filters, cores, repetitions,
+        minimum_set_size = minimum_set_size
+    )
     print(result$summary, row.names = FALSE)
-    if (any(!result$summary$passed)) quit(save = "no", status = 1L)
+    if (any(result$summary$assessment == "fail")) {
+        quit(save = "no", status = 1L)
+    }
 } else if (mode == "all") {
     plan <- write_plan(bg_build_plan(config, catalog, root, filters, force))
     catalog <- bg_generate(plan, catalog, root, cores)

@@ -1,0 +1,21 @@
+scope	metric	observed	criterion	passed
+profiles	paired background keys	105	= 105	TRUE
+profiles	motif set differences	0	= 0	TRUE
+stable profiles	maximum mean delta	1.11022302462516e-15	<= 1e-12	TRUE
+stable profiles	maximum SD delta excluding sentinels	9.99200722162641e-16	<= 1e-12	TRUE
+changed profiles	minimum mean/SD correlation	0.999997360985748	>= 0.9999	TRUE
+changed profiles	maximum normalized mean shift	0.00203564719254603	<= 0.01	TRUE
+changed profiles	minimum SD ratio	0.998125811928348	>= 0.95	TRUE
+changed profiles	maximum SD ratio	1.00226381558787	<= 1.05	TRUE
+changed profiles	SD ratio first percentile	0.999017484778889	>= 0.98	TRUE
+changed profiles	SD ratio 99th percentile	1.00114897264535	<= 1.02	TRUE
+changed profiles	maximum projected null Z shift at n=1000	0.0643728164097279	<= 0.25	TRUE
+benchmark	reference background value error	0	<= 1e-12	TRUE
+benchmark	reference Z recalculation error	7.93143328792212e-13	<= 1e-10	TRUE
+benchmark	minimum rank Spearman	0.999862327840249	>= 0.999	TRUE
+benchmark	minimum top-10 overlap	0.9	>= 0.8	TRUE
+benchmark	minimum top-25 overlap	0.96	>= 0.9	TRUE
+benchmark	minimum top-50 overlap	0.96	>= 0.9	TRUE
+benchmark	maximum absolute Z delta	0.0481421273423355	<= 0.1	TRUE
+benchmark	FDR classification discordance rate	0.000630026809651475	<= 0.005	TRUE
+benchmark	maximum discordant FDR boundary distance	0.0045000010894953	<= 0.01	TRUE

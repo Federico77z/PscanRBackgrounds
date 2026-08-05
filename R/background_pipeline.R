@@ -720,12 +720,87 @@ bg_scan_score_matrix <- function(sequences, motifs, cores) {
     )
 }
 
-bg_one_promoter_per_gene <- function(prepared) {
+bg_ucsc_transcript_gene_map <- function(spec) {
+    bg_require(c("DBI", "RMariaDB"))
+    connection <- DBI::dbConnect(
+        RMariaDB::MariaDB(), user = "genome",
+        host = "genome-mysql.soe.ucsc.edu",
+        dbname = spec$assembly[[1]], port = 3306L
+    )
+    on.exit(DBI::dbDisconnect(connection), add = TRUE)
+    table <- DBI::dbQuoteIdentifier(
+        connection, spec$annotation_source[[1]]
+    )
+    annotation <- DBI::dbGetQuery(
+        connection, paste("SELECT name, name2 FROM", table)
+    )
+    required <- c("name", "name2")
+    if (!all(required %in% names(annotation))) {
+        bg_stop(
+            "UCSC table lacks transcript/gene columns for ",
+            spec$assembly[[1]]
+        )
+    }
+    mapping <- unique(data.frame(
+        transcript_id = as.character(annotation$name),
+        gene_id = as.character(annotation$name2),
+        stringsAsFactors = FALSE
+    ))
+    mapping <- mapping[
+        !is.na(mapping$transcript_id) & nzchar(mapping$transcript_id) &
+            !is.na(mapping$gene_id) & nzchar(mapping$gene_id),
+        , drop = FALSE
+    ]
+    conflicts <- vapply(
+        split(mapping$gene_id, mapping$transcript_id),
+        function(x) length(unique(x)), integer(1)
+    )
+    if (any(conflicts > 1L)) {
+        bg_stop("UCSC transcripts map to conflicting gene identifiers")
+    }
+    mapping <- mapping[!duplicated(mapping$transcript_id), , drop = FALSE]
+    stats::setNames(mapping$gene_id, mapping$transcript_id)
+}
+
+bg_transcript_gene_map <- function(prepared, spec, mapping = NULL) {
+    bg_require("Biostrings")
+    annotation <- prepared$snapshot$transcripts
+    if (is.null(mapping)) {
+        if (spec$provider[[1]] == "ucsc" &&
+                spec$transcript_filter[[1]] == "curated_refseq") {
+            mapping <- bg_ucsc_transcript_gene_map(spec)
+        } else {
+            usable <- !is.na(annotation$gene_id) & nzchar(annotation$gene_id)
+            mapping <- stats::setNames(
+                sub(",.*$", "", annotation$gene_id[usable]),
+                annotation$transcript_id[usable]
+            )
+        }
+    }
+    transcript_ids <- names(prepared$all_sequences)
+    coverage <- mean(transcript_ids %in% names(mapping))
+    if (!is.finite(coverage) || coverage < 0.8) {
+        bg_stop(sprintf(
+            "Transcript-to-gene mapping coverage for %s is %.1f%%",
+            spec$assembly[[1]], 100 * coverage
+        ))
+    }
+    bg_message(
+        "Transcript-to-gene mapping coverage for %s: %.1f%%",
+        spec$assembly[[1]], 100 * coverage
+    )
+    mapping
+}
+
+bg_one_promoter_per_gene <- function(prepared, transcript_gene_map) {
     sequences <- prepared$all_sequences
     annotation <- prepared$snapshot$transcripts
     annotation <- annotation[match(names(sequences), annotation$transcript_id), ]
-    gene <- sub(",.*$", "", annotation$gene_id)
-    gene[!nzchar(gene)] <- annotation$transcript_id[!nzchar(gene)]
+    gene <- unname(transcript_gene_map[annotation$transcript_id])
+    missing_gene <- is.na(gene) | !nzchar(gene)
+    gene[missing_gene] <- sub(",.*$", "", annotation$gene_id[missing_gene])
+    missing_gene <- is.na(gene) | !nzchar(gene)
+    gene[missing_gene] <- annotation$transcript_id[missing_gene]
     priority <- ifelse(
         grepl("^NM_", annotation$transcript_id), 1L,
         ifelse(grepl("^NR_", annotation$transcript_id), 2L, 3L)
@@ -735,14 +810,67 @@ bg_one_promoter_per_gene <- function(prepared) {
     BiocGenerics::unique(sequences[keep])
 }
 
+bg_summarize_calibration <- function(details, replicate_details,
+                                     minimum_set_size = 50L) {
+    keys <- interaction(
+        details$assembly, details$set_size, drop = TRUE, lex.order = TRUE
+    )
+    replicate_keys <- interaction(
+        replicate_details$assembly, replicate_details$set_size,
+        drop = TRUE, lex.order = TRUE
+    )
+    grouped <- split(details, keys)
+    replicate_grouped <- split(replicate_details, replicate_keys)
+    summary <- do.call(rbind, lapply(names(grouped), function(key) {
+        x <- grouped[[key]]
+        replicates <- replicate_grouped[[key]]
+        if (is.null(replicates)) bg_stop("Missing calibration replicates")
+        se_005 <- stats::sd(replicates$fpr_005) / sqrt(nrow(replicates))
+        se_001 <- stats::sd(replicates$fpr_001) / sqrt(nrow(replicates))
+        limit_005 <- 0.05 + 3 * se_005
+        limit_001 <- 0.01 + 3 * se_001
+        aggregate_fpr_005 <- mean(replicates$fpr_005)
+        aggregate_fpr_001 <- mean(replicates$fpr_001)
+        gated <- x$set_size[[1]] >= minimum_set_size
+        fpr_passed <- aggregate_fpr_005 <= limit_005 &&
+            aggregate_fpr_001 <= limit_001
+        data.frame(
+            assembly = x$assembly[[1]], set_size = x$set_size[[1]],
+            motifs = nrow(x), repetitions = nrow(replicates),
+            assessment = if (!gated) {
+                "small-set diagnostic"
+            } else if (fpr_passed) "pass" else "fail",
+            rejected_fraction = mean(x$ks_fdr < 0.05, na.rm = TRUE),
+            aggregate_fpr_005 = aggregate_fpr_005,
+            aggregate_fpr_001 = aggregate_fpr_001,
+            se_005 = se_005, se_001 = se_001,
+            limit_005 = limit_005, limit_001 = limit_001,
+            gated = gated,
+            passed = if (gated) fpr_passed else NA,
+            stringsAsFactors = FALSE
+        )
+    }))
+    row.names(summary) <- NULL
+    summary
+}
+
 bg_calibrate <- function(config, root, filters, cores, repetitions = 1000L,
-                         seed = 20090516L) {
+                         seed = 20090516L, minimum_set_size = 50L) {
     bg_load_pscanr()
     selected <- bg_filter_rows(config, filters)$organisms
+    curated <- selected$provider == "ucsc" &
+        selected$transcript_filter == "curated_refseq"
+    external_gene_maps <- lapply(
+        split(selected[curated, , drop = FALSE], seq_len(sum(curated))),
+        bg_ucsc_transcript_gene_map
+    )
+    names(external_gene_maps) <- selected$assembly[curated]
     details <- list()
     comparisons <- list()
+    replicate_details <- list()
     detail_index <- 0L
     comparison_index <- 0L
+    replicate_index <- 0L
     set_sizes <- c(5L, 10L, 20L, 50L, 100L, 200L)
 
     for (i in seq_len(nrow(selected))) {
@@ -753,6 +881,9 @@ bg_calibrate <- function(config, root, filters, cores, repetitions = 1000L,
             spec, 450L, 50L, root, write_cache = TRUE
         )
         prepared <- readRDS(prepared_info$cache_path)
+        transcript_gene_map <- bg_transcript_gene_map(
+            prepared, spec, external_gene_maps[[assembly]]
+        )
         motif_info <- bg_load_motifs(2024L, spec$tax_group[[1]])
         scores <- bg_scan_score_matrix(
             prepared$sequences, motif_info$motifs, cores
@@ -766,6 +897,9 @@ bg_calibrate <- function(config, root, filters, cores, repetitions = 1000L,
                 repetitions, sample.int(nrow(scores), set_size),
                 simplify = FALSE
             )
+            significant_005 <- integer(repetitions)
+            significant_001 <- integer(repetitions)
+            tested_motifs <- integer(repetitions)
             for (motif_index in seq_len(ncol(scores))) {
                 values <- scores[, motif_index]
                 sample_means <- vapply(
@@ -775,28 +909,50 @@ bg_calibrate <- function(config, root, filters, cores, repetitions = 1000L,
                 z <- (sample_means - means[[motif_index]]) /
                     (deviations[[motif_index]] / sqrt(set_size))
                 pvalues <- stats::pnorm(z, lower.tail = FALSE)
-                pvalues <- pvalues[is.finite(pvalues)]
+                valid <- is.finite(pvalues)
+                significant_005[valid] <- significant_005[valid] +
+                    (pvalues[valid] < 0.05)
+                significant_001[valid] <- significant_001[valid] +
+                    (pvalues[valid] < 0.01)
+                tested_motifs[valid] <- tested_motifs[valid] + 1L
+                current_pvalues <- pvalues[valid]
                 detail_index <- detail_index + 1L
                 details[[detail_index]] <- data.frame(
                     assembly = assembly,
                     motif_id = names(motif_info$motifs)[[motif_index]],
                     set_size = set_size,
-                    ks_pvalue = if (length(pvalues) >= 10L) {
-                        suppressWarnings(stats::ks.test(pvalues, "punif")$p.value)
+                    ks_pvalue = if (length(current_pvalues) >= 10L) {
+                        suppressWarnings(stats::ks.test(
+                            current_pvalues, "punif"
+                        )$p.value)
                     } else {
                         NA_real_
                     },
-                    fpr_005 = mean(pvalues < 0.05),
-                    fpr_001 = mean(pvalues < 0.01),
+                    fpr_005 = mean(current_pvalues < 0.05),
+                    fpr_001 = mean(current_pvalues < 0.01),
                     repetitions = repetitions,
                     stringsAsFactors = FALSE
                 )
             }
+            if (any(tested_motifs == 0L)) {
+                bg_stop("A calibration replicate has no finite motif tests")
+            }
+            replicate_index <- replicate_index + 1L
+            replicate_details[[replicate_index]] <- data.frame(
+                assembly = assembly, set_size = set_size,
+                replicate = seq_len(repetitions),
+                tested_motifs = tested_motifs,
+                fpr_005 = significant_005 / tested_motifs,
+                fpr_001 = significant_001 / tested_motifs,
+                stringsAsFactors = FALSE
+            )
         }
 
         diagnostic_indices <- bg_stratified_motif_indices(motif_info$motifs)
         diagnostic_motifs <- motif_info$motifs[diagnostic_indices]
-        gene_sequences <- bg_one_promoter_per_gene(prepared)
+        gene_sequences <- bg_one_promoter_per_gene(
+            prepared, transcript_gene_map
+        )
         gene_scores <- bg_scan_score_matrix(gene_sequences, diagnostic_motifs, cores)
         for (j in seq_along(diagnostic_indices)) {
             current_index <- diagnostic_indices[[j]]
@@ -819,6 +975,7 @@ bg_calibrate <- function(config, root, filters, cores, repetitions = 1000L,
 
     details <- do.call(rbind, details)
     details$ks_fdr <- stats::p.adjust(details$ks_pvalue, method = "BH")
+    replicate_details <- do.call(rbind, replicate_details)
     comparisons <- do.call(rbind, comparisons)
     comparisons$mean_delta <- comparisons$gene_mean - comparisons$transcript_mean
     comparisons$sd_delta <- comparisons$gene_sd - comparisons$transcript_sd
@@ -830,29 +987,21 @@ bg_calibrate <- function(config, root, filters, cores, repetitions = 1000L,
         comparisons, file.path(root, "reports", "promoter_universe_comparison.tsv"),
         sep = "\t", quote = FALSE, row.names = FALSE
     )
+    utils::write.table(
+        replicate_details,
+        file.path(root, "reports", "scientific_calibration_replicates.tsv"),
+        sep = "\t", quote = FALSE, row.names = FALSE
+    )
 
-    grouped <- split(details, interaction(details$assembly, details$set_size))
-    summary <- do.call(rbind, lapply(grouped, function(x) {
-        n <- nrow(x) * x$repetitions[[1]]
-        limit_005 <- 0.05 + 3 * sqrt(0.05 * 0.95 / n)
-        limit_001 <- 0.01 + 3 * sqrt(0.01 * 0.99 / n)
-        data.frame(
-            assembly = x$assembly[[1]], set_size = x$set_size[[1]],
-            motifs = nrow(x),
-            rejected_fraction = mean(x$ks_fdr < 0.05, na.rm = TRUE),
-            aggregate_fpr_005 = mean(x$fpr_005, na.rm = TRUE),
-            aggregate_fpr_001 = mean(x$fpr_001, na.rm = TRUE),
-            limit_005 = limit_005, limit_001 = limit_001,
-            passed = mean(x$ks_fdr < 0.05, na.rm = TRUE) <= 0.05 &&
-                mean(x$fpr_005, na.rm = TRUE) <= limit_005 &&
-                mean(x$fpr_001, na.rm = TRUE) <= limit_001,
-            stringsAsFactors = FALSE
-        )
-    }))
-    row.names(summary) <- NULL
+    summary <- bg_summarize_calibration(
+        details, replicate_details, minimum_set_size
+    )
     utils::write.table(
         summary, file.path(root, "reports", "scientific_calibration_summary.tsv"),
         sep = "\t", quote = FALSE, row.names = FALSE
     )
-    list(details = details, comparison = comparisons, summary = summary)
+    list(
+        details = details, replicates = replicate_details,
+        comparison = comparisons, summary = summary
+    )
 }
