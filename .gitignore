@@ -11,3 +11,4 @@ reports/*.log
 reports/*.exit
 reports/run_*.sh
 .Rhistory
+releases/zenodo/

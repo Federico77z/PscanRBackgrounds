@@ -7,6 +7,7 @@ script_path <- if (length(script_argument)) {
 root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRUE)
 source(file.path(root, "R", "background_pipeline.R"))
 source(file.path(root, "R", "background_comparison.R"))
+source(file.path(root, "R", "zenodo_release.R"))
 
 config <- bg_read_config(root)
 stopifnot(
@@ -108,6 +109,58 @@ stopifnot(
     !anyDuplicated(catalog$artifact),
     !length(bg_validate_catalog(catalog, root))
 )
+
+release_output <- tempfile("zenodo-release-")
+release <- bg_build_zenodo_release(
+    root, catalog, version = 2L, output_dir = release_output,
+    publication_date = as.Date("2026-08-06")
+)
+release_validation <- bg_validate_zenodo_release(release$archive, 2L)
+stopifnot(
+    release$resource_count == 105L,
+    release_validation$resource_count == 105L,
+    file.exists(release$checksum),
+    file.exists(release$metadata),
+    file.exists(release$instructions)
+)
+second_output <- tempfile("zenodo-release-repeat-")
+second_release <- bg_build_zenodo_release(
+    root, catalog, version = 2L, output_dir = second_output,
+    publication_date = as.Date("2026-08-06")
+)
+stopifnot(identical(release$archive_sha256, second_release$archive_sha256))
+bad_release_catalog <- catalog
+bad_release_index <- which(bad_release_catalog$background_version == 2L)[[1]]
+bad_release_catalog$artifact_sha256[[bad_release_index]] <- paste(
+    rep("0", 64L), collapse = ""
+)
+bad_release_result <- try(
+    bg_build_zenodo_release(
+        root, bad_release_catalog, version = 2L,
+        output_dir = tempfile("zenodo-bad-release-")
+    ),
+    silent = TRUE
+)
+stopifnot(
+    inherits(bad_release_result, "try-error"),
+    grepl("do not match catalog SHA-256", bad_release_result)
+)
+duplicate_release_catalog <- catalog
+duplicate_release_catalog <- rbind(
+    duplicate_release_catalog,
+    duplicate_release_catalog[
+        duplicate_release_catalog$background_version == 2L,
+        , drop = FALSE
+    ][1L, ]
+)
+duplicate_release_result <- try(
+    bg_zenodo_release_catalog(duplicate_release_catalog, 2L), silent = TRUE
+)
+stopifnot(
+    inherits(duplicate_release_result, "try-error"),
+    grepl("duplicate catalog keys", duplicate_release_result)
+)
+unlink(c(release_output, second_output), recursive = TRUE)
 
 key_info <- list(
     key = "synthetic", organism = "test", assembly = "test",

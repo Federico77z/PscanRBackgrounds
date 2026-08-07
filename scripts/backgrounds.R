@@ -9,6 +9,7 @@ script_path <- if (length(script_argument)) {
 root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRUE)
 source(file.path(root, "R", "background_pipeline.R"))
 source(file.path(root, "R", "background_comparison.R"))
+source(file.path(root, "R", "zenodo_release.R"))
 
 usage <- function(status = 0L) {
     cat(paste(
@@ -22,6 +23,7 @@ usage <- function(status = 0L) {
         "  validate   Validate all catalog artifacts and checksums",
         "  compare    Compare two complete background versions",
         "  calibrate  Run null calibration and promoter-universe comparison",
+        "  zenodo    Build and validate an immutable Zenodo release archive",
         "  all        Plan, generate, then validate",
         "",
         "Options:",
@@ -33,6 +35,7 @@ usage <- function(status = 0L) {
         "  --window=450u_50d       Restrict promoter windows",
         "  --reference-version=N  Reference version for compare (default: 1)",
         "  --candidate-version=N  Candidate version for compare (default: 2)",
+        "  --release-version=N    Background version for zenodo (default: 2)",
         "  --benchmark-dir=PATH    Existing foreground benchmark for compare",
         "  --output-dir=PATH       Comparison report directory",
         "  --force                 Regenerate selected jobs despite equal hashes",
@@ -48,7 +51,7 @@ mode <- args[[1]]
 args <- args[-1]
 valid_modes <- c(
     "audit", "check", "plan", "generate", "validate", "compare",
-    "calibrate", "all"
+    "calibrate", "zenodo", "all"
 )
 if (!mode %in% valid_modes) {
     cat("Unknown mode: ", mode, "\n", sep = "")
@@ -66,7 +69,7 @@ unknown <- args[!grepl(
     paste0(
         "^--(cores|repetitions|minimum-set-size|assembly|jaspar|window|",
         "reference-version|",
-        "candidate-version|benchmark-dir|output-dir)=|^--force$"
+        "candidate-version|release-version|benchmark-dir|output-dir)=|^--force$"
     ), args
 )]
 if (length(unknown)) bg_stop("Unknown options: ", paste(unknown, collapse = ", "))
@@ -111,14 +114,19 @@ path_option <- function(name, default = NULL, must_work = FALSE) {
 
 reference_version <- positive_integer_option("reference-version", 1L)
 candidate_version <- positive_integer_option("candidate-version", 2L)
+release_version <- positive_integer_option("release-version", 2L)
 minimum_set_size <- positive_integer_option("minimum-set-size", 50L)
 benchmark_dir <- path_option("benchmark-dir", must_work = TRUE)
 comparison_output <- path_option(
     "output-dir",
-    file.path(
-        root, "reports",
-        sprintf("comparison_v%d_v%d", reference_version, candidate_version)
-    )
+    if (mode == "zenodo") {
+        file.path(root, "releases", "zenodo", paste0("v", release_version))
+    } else {
+        file.path(
+            root, "reports",
+            sprintf("comparison_v%d_v%d", reference_version, candidate_version)
+        )
+    }
 )
 
 if (!nzchar(Sys.getenv("PSCANR_SOURCE", ""))) {
@@ -192,6 +200,14 @@ if (mode == "audit") {
     if (any(result$summary$assessment == "fail")) {
         quit(save = "no", status = 1L)
     }
+} else if (mode == "zenodo") {
+    result <- bg_build_zenodo_release(
+        root, catalog, version = release_version,
+        output_dir = comparison_output
+    )
+    print(as.data.frame(result[c(
+        "archive", "archive_sha256", "resource_count", "member_count"
+    )], stringsAsFactors = FALSE), row.names = FALSE)
 } else if (mode == "all") {
     plan <- write_plan(bg_build_plan(config, catalog, root, filters, force))
     catalog <- bg_generate(plan, catalog, root, cores)

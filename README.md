@@ -18,6 +18,25 @@ authoritative artifact registry. Existing version-1 entries are immutable
 legacy backgrounds; they predate input fingerprinting. New versions include
 annotation, promoter-sequence, motif-content, scanner, and artifact hashes.
 
+## ExperimentHub distribution
+
+This repository is also the source of the lightweight `PscanRBackgrounds`
+ExperimentHub package. The validated version-2 collection is archived at
+[Zenodo](https://doi.org/10.5281/zenodo.21821764). The package metadata points
+to that immutable version-specific record; GitHub files remain a legacy
+fallback and are excluded from the package tarball.
+
+Validate the Hub metadata and build the lightweight source package with:
+
+```sh
+Rscript inst/scripts/make-metadata.R
+R CMD build .
+R CMD check --as-cran --no-manual ../PscanRBackgrounds_0.99.0.tar.gz
+```
+
+The metadata targets Bioconductor 3.24 and dispatches the Zenodo ZIP as a
+cached `FilePath`. A PDF manual check additionally requires `pdflatex`.
+
 ## Runtime dependencies
 
 Use the same Bioconductor release as the PscanR checkout. The pipeline requires
@@ -84,6 +103,18 @@ stored benchmark tables without rescanning DNA. Reports and acceptance checks
 are written to `reports/comparison_v1_v2/`; the command exits unsuccessfully
 when a scientific compatibility threshold is exceeded. The benchmark argument
 is optional, but should be supplied for release validation.
+
+Build the validated archive and metadata for an immutable Zenodo release:
+
+```sh
+Rscript scripts/backgrounds.R zenodo --release-version=2
+```
+
+The command selects the complete validated release from `catalog.tsv`, checks
+every source checksum, creates a deterministic ZIP, extracts it again, and
+validates its catalog and manifest. Upload-ready files are written under
+`releases/zenodo/v2/`. Only the ZIP is deposited as the Zenodo data file; the
+generated metadata and instructions describe the accompanying record.
 
 ## Scientific validation
 

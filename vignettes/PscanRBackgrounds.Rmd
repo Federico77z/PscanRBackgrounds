@@ -1,0 +1,72 @@
+---
+title: "PscanR Background Resources"
+author: "Federico Zambelli"
+package: PscanRBackgrounds
+output:
+  BiocStyle::html_document:
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{PscanR Background Resources}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+# Overview
+
+`PscanRBackgrounds` documents immutable promoter-background score
+distributions used by `PscanR`. Version 2 contains 105 combinations of three
+JASPAR releases, seven genome assemblies, and five promoter windows. The
+resource is archived at Zenodo under DOI
+<https://doi.org/10.5281/zenodo.21821764> and distributed through
+ExperimentHub.
+
+# Access
+
+Once the resource has been registered in ExperimentHub, it can be discovered
+by package and title. Retrieval returns the path to the locally cached ZIP
+archive.
+
+The packaged metadata can be inspected without network access.
+
+```{r metadata}
+metadata_path <- system.file(
+    "extdata", "metadata.csv",
+    package = "PscanRBackgrounds"
+)
+metadata <- read.csv(metadata_path)
+metadata[c("Title", "SourceVersion", "SourceUrl")]
+```
+
+```{r access, eval=FALSE}
+library(ExperimentHub)
+
+eh <- ExperimentHub()
+resources <- query(eh, c("PscanRBackgrounds", "PscanR_backgrounds_v2"))
+resources
+
+archive <- resources[[names(resources)[1]]]
+archive
+```
+
+PscanR users should normally call
+`PscanR::generate_psmatrixlist_from_background()` instead of opening the
+archive directly. PscanR resolves the requested organism, assembly, promoter
+window, JASPAR release, and immutable background version, then validates the
+selected file against its SHA-256 checksum.
+
+# Provenance
+
+The archive contains `catalog.tsv`, which records promoter and motif hashes,
+annotation sources, PscanR scanner version, generation date, and an artifact
+checksum for every background. The complete generation and scientific
+comparison framework is maintained in the
+[PscanR_backgrounds
+repository](https://github.com/Federico77z/PscanR_backgrounds).
+
+```{r session-info}
+sessionInfo()
+```

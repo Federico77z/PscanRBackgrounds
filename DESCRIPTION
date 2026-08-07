@@ -1,0 +1,37 @@
+Package: PscanRBackgrounds
+Type: Package
+Title: Precomputed Promoter Backgrounds for PscanR
+Version: 0.99.0
+Authors@R: c(
+    person("Federico", "Zambelli",
+        email = "federico.zambelli@unimi.it",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0000-0003-3487-4331")),
+    person("Diana", "Betelli", role = "aut",
+        comment = c(ORCID = "0009-0007-6207-7715")),
+    person("Giulio", "Pavesi", role = "aut",
+        comment = c(ORCID = "0000-0001-5705-6249"))
+    )
+Description: Provides ExperimentHub metadata and documentation for immutable
+    promoter-background score distributions used by PscanR transcription
+    factor binding motif enrichment analyses. Backgrounds cover JASPAR 2020,
+    2022, and 2024 motif collections, seven genome assemblies, and five
+    promoter windows.
+License: CC BY 4.0
+Encoding: UTF-8
+Depends: R (>= 4.6.0)
+Imports:
+    ExperimentHub
+Suggests:
+    BiocStyle,
+    ExperimentHubData,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+biocViews: ExperimentData, ExperimentHub, Genome
+VignetteBuilder: knitr
+URL: https://github.com/Federico77z/PscanR_backgrounds,
+    https://doi.org/10.5281/zenodo.21821764
+BugReports: https://github.com/Federico77z/PscanR_backgrounds/issues
+RoxygenNote: 8.0.0
+Config/testthat/edition: 3
