@@ -15,14 +15,29 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-# Overview
+# Introduction
 
 `PscanRBackgrounds` documents immutable promoter-background score
 distributions used by `PscanR`. Version 2 contains 105 combinations of three
 JASPAR releases, seven genome assemblies, and five promoter windows. The
 resource is archived at Zenodo under DOI
-<https://doi.org/10.5281/zenodo.21821764> and distributed through
-ExperimentHub.
+<https://doi.org/10.5281/zenodo.21821764> and is currently available through Zenodo. The resource has not yet been
+submitted to or registered in ExperimentHub; this package prepares its Hub
+metadata and accessor for that registration.
+
+# Installation
+
+After Bioconductor acceptance, install the package with:
+
+```{r installation, eval=FALSE}
+BiocManager::install("PscanRBackgrounds")
+```
+
+Before acceptance, install the source tarball as described in the README.
+
+```{r load-package}
+library(PscanRBackgrounds)
+```
 
 # Access
 
@@ -41,6 +56,10 @@ metadata <- read.csv(metadata_path)
 metadata[c("Title", "SourceVersion", "SourceUrl")]
 ```
 
+The following network operation requires Hub registration. It remains
+unevaluated until registration is confirmed; the maintainer's final integration
+check must run it successfully before submission.
+
 ```{r access, eval=FALSE}
 library(ExperimentHub)
 
@@ -58,14 +77,21 @@ archive directly. PscanR resolves the requested organism, assembly, promoter
 window, JASPAR release, and immutable background version, then validates the
 selected file against its SHA-256 checksum.
 
+# License
+
+The derived background archive is licensed under CC BY 4.0. Cite the versioned
+Zenodo record and the original Pscan method. The installed `DATA_SOURCES.md`
+lists upstream sources and attribution; `inst/scripts/make-data.R` describes
+the complete preparation procedure.
+
 # Provenance
 
 The archive contains `catalog.tsv`, which records promoter and motif hashes,
 annotation sources, PscanR scanner version, generation date, and an artifact
 checksum for every background. The complete generation and scientific
 comparison framework is maintained in the
-[PscanR_backgrounds
-repository](https://github.com/Federico77z/PscanR_backgrounds).
+[PscanRBackgrounds
+repository](https://github.com/Federico77z/PscanRBackgrounds).
 
 ```{r session-info}
 sessionInfo()

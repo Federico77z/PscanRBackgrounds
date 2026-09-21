@@ -7,4 +7,9 @@
 PscanRBackgrounds provides ExperimentHub metadata and documentation for
 immutable promoter-background score distributions used by PscanR.
 }
+\examples{
+path <- system.file("extdata", "metadata.csv", package = "PscanRBackgrounds")
+metadata <- utils::read.csv(path)
+metadata[c("Title", "SourceVersion", "DispatchClass")]
+}
 \keyword{internal}

@@ -24,7 +24,18 @@ The resource uses ExperimentHub's `FilePath` dispatch and therefore returns
 the path to the cached ZIP archive. PscanR selects and validates the required
 background within the archive.
 }
+\section{License}{
+
+The derived background archive is distributed under CC BY 4.0. See the
+installed DATA_SOURCES.md for upstream attribution and generation sources.
+}
+
 \examples{
+metadata <- utils::read.csv(system.file(
+    "extdata", "metadata.csv", package = "PscanRBackgrounds"
+))
+metadata[c("Title", "SourceUrl", "DispatchClass")]
+# Requires the resource to be registered and access to ExperimentHub.
 if (interactive()) {
     archive <- PscanR_backgrounds_v2()
     archive

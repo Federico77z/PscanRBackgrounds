@@ -18,3 +18,12 @@ test_that("ExperimentHub metadata identifies the immutable Zenodo release", {
         "PscanR_backgrounds_v2.zip/content"
     )
 })
+
+test_that("the installed package exports the documented Hub accessor", {
+    path <- system.file("extdata", "metadata.csv", package="PscanRBackgrounds")
+    title <- utils::read.csv(path)$Title
+    expect_true(title %in% getNamespaceExports("PscanRBackgrounds"))
+    accessor <- getExportedValue("PscanRBackgrounds", title)
+    expect_true(is.function(accessor))
+    expect_true("metadata" %in% names(formals(accessor)))
+})

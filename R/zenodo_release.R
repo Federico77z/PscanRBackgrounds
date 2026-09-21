@@ -64,7 +64,7 @@ bg_zenodo_readme <- function(version, catalog) {
         "The `artifact_sha256` column in `catalog.tsv` validates each background file.",
         "",
         "Generation and scientific-validation code is maintained at:",
-        "https://github.com/Federico77z/PscanR_backgrounds",
+        "https://github.com/Federico77z/PscanRBackgrounds",
         "",
         "PscanR is maintained at:",
         "https://github.com/Federico77z/PscanR",
@@ -104,7 +104,7 @@ bg_zenodo_citation <- function(version) {
         "    given-names: Giulio",
         "    orcid: \"https://orcid.org/0000-0001-5705-6249\"",
         "license: CC-BY-4.0",
-        "repository-code: \"https://github.com/Federico77z/PscanR_backgrounds\"",
+        "repository-code: \"https://github.com/Federico77z/PscanRBackgrounds\"",
         "references:",
         "  - type: article",
         "    authors:",
@@ -160,7 +160,7 @@ bg_zenodo_metadata <- function(version, publication_date = Sys.Date()) {
                 resource_type = "publication-article"
             ),
             list(
-                identifier = "https://github.com/Federico77z/PscanR_backgrounds",
+                identifier = "https://github.com/Federico77z/PscanRBackgrounds",
                 relation = "isSupplementTo",
                 resource_type = "dataset"
             )

@@ -6,6 +6,19 @@ promoter window, and JASPAR CORE taxonomic collection, PscanR retains the best
 normalized PWM match in each unique promoter sequence and stores the resulting
 mean and standard deviation.
 
+## Installing the data package
+
+The package name is `PscanRBackgrounds`. It is not yet available from
+Bioconductor. After acceptance, use `BiocManager::install("PscanRBackgrounds")`.
+Before acceptance, run `R CMD build .` and install the resulting tarball with
+`R CMD INSTALL PscanRBackgrounds_0.99.0.tar.gz`, with dependencies already
+installed. Loading the package exposes its resource accessor; retrieving the
+resource requires ExperimentHub registration. The v2 archive is currently
+published only on [Zenodo](https://doi.org/10.5281/zenodo.21821764); it has not
+yet been submitted to or registered in ExperimentHub. The generation commands below
+are maintainer tools and are not needed to install or use the package.
+
+
 ## Supported combinations
 
 - JASPAR releases: 2020, 2022, and 2024.

@@ -16,7 +16,8 @@ Description: Provides ExperimentHub metadata and documentation for immutable
     promoter-background score distributions used by PscanR transcription
     factor binding motif enrichment analyses. Backgrounds cover JASPAR 2020,
     2022, and 2024 motif collections, seven genome assemblies, and five
-    promoter windows.
+    promoter windows. Resources are retrieved as a checksum-verifiable archive
+    through ExperimentHub from a version-specific Zenodo record.
 License: CC BY 4.0
 Encoding: UTF-8
 Depends: R (>= 4.6.0)
@@ -30,8 +31,8 @@ Suggests:
     testthat (>= 3.0.0)
 biocViews: ExperimentData, ExperimentHub, Genome
 VignetteBuilder: knitr
-URL: https://github.com/Federico77z/PscanR_backgrounds,
+URL: https://github.com/Federico77z/PscanRBackgrounds,
     https://doi.org/10.5281/zenodo.21821764
-BugReports: https://github.com/Federico77z/PscanR_backgrounds/issues
+BugReports: https://github.com/Federico77z/PscanRBackgrounds/issues
 RoxygenNote: 8.0.0
 Config/testthat/edition: 3

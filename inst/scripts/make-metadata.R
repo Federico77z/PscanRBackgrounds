@@ -1,5 +1,12 @@
 #!/usr/bin/env Rscript
 
+if (!requireNamespace("ExperimentHubData", quietly = TRUE)) {
+    stop(
+        "Install ExperimentHubData before generating and validating metadata.",
+        call. = FALSE
+    )
+}
+
 script_argument <- grep("^--file=", commandArgs(FALSE), value = TRUE)
 script_path <- if (length(script_argument)) {
     sub("^--file=", "", script_argument[[1]])
@@ -36,10 +43,4 @@ utils::write.csv(
     row.names = FALSE, na = "NA"
 )
 
-if (requireNamespace("ExperimentHubData", quietly = TRUE)) {
-    ExperimentHubData::makeExperimentHubMetadata(root)
-} else {
-    message(
-        "Install ExperimentHubData to run formal Hub metadata validation."
-    )
-}
+ExperimentHubData::makeExperimentHubMetadata(root)
