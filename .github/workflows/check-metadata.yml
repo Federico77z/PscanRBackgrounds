@@ -1,0 +1,24 @@
+name: Hub metadata
+on:
+  push:
+    branches: [main, devel]
+  pull_request:
+    branches: [main, devel]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    container: bioconductor/bioconductor_docker:devel
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install validation dependencies
+        shell: Rscript {0}
+        run: |
+          BiocManager::install(c("ExperimentHubData", "GenomeInfoDbData"),
+                               ask = FALSE, update = FALSE)
+      - name: Validate immutable resource metadata
+        run: Rscript inst/scripts/make-metadata.R
+      - name: Check generated metadata is current
+        run: git -c safe.directory="$GITHUB_WORKSPACE" diff --exit-code -- inst/extdata/metadata.csv

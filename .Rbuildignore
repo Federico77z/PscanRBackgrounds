@@ -1,0 +1,10 @@
+^\.git$
+^\.github$
+^\.gitignore$
+^\.Rhistory$
+^.*\.Rproj$
+^\.Rproj\.user$
+^check$
+^.*\.Rcheck$
+^.*\.BiocCheck$
+^README\.md$
