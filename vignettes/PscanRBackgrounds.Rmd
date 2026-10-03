@@ -1,6 +1,7 @@
 ---
 title: "PscanR Background Resources"
 author: "Federico Zambelli"
+date: "`r Sys.Date()`"
 package: PscanRBackgrounds
 output:
   BiocStyle::html_document:
@@ -17,81 +18,92 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 # Introduction
 
-`PscanRBackgrounds` documents immutable promoter-background score
-distributions used by `PscanR`. Version 2 contains 105 combinations of three
-JASPAR releases, seven genome assemblies, and five promoter windows. The
-resource is archived at Zenodo under DOI
-<https://doi.org/10.5281/zenodo.21821764> and is currently available through Zenodo. The resource has not yet been
-submitted to or registered in ExperimentHub; this package prepares its Hub
-metadata and accessor for that registration.
+`PscanRBackgrounds` provides the precomputed promoter backgrounds used by the
+[PscanR](https://github.com/Federico77z/PscanR) motif enrichment package.
+PscanR compares the motif scores of a set of foreground promoters against the
+distribution of the same scores over all promoters of an organism. Computing
+that distribution means scanning every promoter of a genome with every motif
+of a JASPAR collection, which takes hours; this package distributes the
+result for the most common combinations.
+
+Version 2 of the backgrounds covers three JASPAR CORE releases (2020, 2022,
+2024), seven genome assemblies of five organisms, and five promoter windows,
+for 105 backgrounds. Each background is a separate ExperimentHub resource.
+The same files are archived in the Zenodo record
+<https://doi.org/10.5281/zenodo.21821764>.
 
 # Installation
 
-After Bioconductor acceptance, install the package with:
-
 ```{r installation, eval=FALSE}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
 BiocManager::install("PscanRBackgrounds")
 ```
-
-Before acceptance, install the source tarball as described in the README.
 
 ```{r load-package}
 library(PscanRBackgrounds)
 ```
 
-# Access
+# Available resources
 
-Once the resource has been registered in ExperimentHub, it can be discovered
-by package and title. Retrieval returns the path to the locally cached ZIP
-archive.
-
-The packaged metadata can be inspected without network access.
+The metadata of all resources is installed with the package and can be
+inspected without network access.
 
 ```{r metadata}
-metadata_path <- system.file(
-    "extdata", "metadata.csv",
-    package = "PscanRBackgrounds"
-)
-metadata <- read.csv(metadata_path)
-metadata[c("Title", "SourceVersion", "SourceUrl")]
+metadata <- read.csv(system.file(
+    "extdata", "metadata.csv", package = "PscanRBackgrounds"
+))
+nrow(metadata)
+head(metadata[c("Title", "Genome", "Species", "TaxonomyId")])
+table(metadata$Genome)
 ```
 
-The following network operation requires Hub registration. It remains
-unevaluated until registration is confirmed; the maintainer's final integration
-check must run it successfully before submission.
+Titles follow the pattern
+`PscanR_bg_v2_J<release>_<assembly>_<up>u_<down>d_<source>`. The installed
+catalog records the provenance of every background: annotation source and
+retrieval date, promoter, motif and annotation hashes, scanner version and
+commit, and the SHA-256 checksum of the file.
+
+```{r catalog}
+catalog <- read.delim(system.file(
+    "extdata", "catalog_v2.tsv", package = "PscanRBackgrounds"
+))
+table(catalog$assembly, catalog$jaspar_release)
+catalog[1, c("artifact", "motif_count", "promoter_count",
+    "annotation_source", "pscanr_version")]
+```
+
+# Retrieval through ExperimentHub
+
+Each resource uses the `FilePath` dispatch class: retrieval downloads the
+text file once, caches it, and returns its local path.
 
 ```{r access, eval=FALSE}
 library(ExperimentHub)
-
 eh <- ExperimentHub()
-resources <- query(eh, c("PscanRBackgrounds", "PscanR_backgrounds_v2"))
-resources
-
-archive <- resources[[names(resources)[1]]]
-archive
+backgrounds <- query(eh, "PscanRBackgrounds")
+hg38 <- query(backgrounds, c("hg38", "JASPAR2020", "200u_50d"))
+hg38
+path <- hg38[[1]]
+readLines(path, n = 3)
 ```
 
-PscanR users should normally call
-`PscanR::generate_psmatrixlist_from_background()` instead of opening the
-archive directly. PscanR resolves the requested organism, assembly, promoter
-window, JASPAR release, and immutable background version, then validates the
-selected file against its SHA-256 checksum.
+PscanR users normally do not open the files directly: PscanR selects the
+background matching the requested JASPAR release, organism, assembly and
+promoter window, verifies its checksum, and combines it with the JASPAR
+matrices into the object its enrichment functions take.
 
-# License
+# License and provenance
 
-The derived background archive is licensed under CC BY 4.0. Cite the versioned
-Zenodo record and the original Pscan method. The installed `DATA_SOURCES.md`
-lists upstream sources and attribution; `inst/scripts/make-data.R` describes
-the complete preparation procedure.
+The backgrounds are distributed under CC BY 4.0. Cite the Zenodo record and
+the Pscan method (Zambelli, Pesole and Pavesi, 2009,
+<https://doi.org/10.1093/nar/gkp464>). The installed `DATA_SOURCES.md` lists
+the upstream sources; `scripts/make-data.R` describes how the backgrounds
+were generated, and `scripts/make-metadata.R` builds the ExperimentHub
+metadata. The generation pipeline is maintained at
+<https://github.com/Federico77z/PscanRBackgrounds-pipeline>.
 
-# Provenance
-
-The archive contains `catalog.tsv`, which records promoter and motif hashes,
-annotation sources, PscanR scanner version, generation date, and an artifact
-checksum for every background. The complete generation and scientific
-comparison framework is maintained in the
-[PscanRBackgrounds
-repository](https://github.com/Federico77z/PscanRBackgrounds).
+# Session information
 
 ```{r session-info}
 sessionInfo()

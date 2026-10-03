@@ -8,3 +8,4 @@
 ^.*\.Rcheck$
 ^.*\.BiocCheck$
 ^README\.md$
+^\.deps\.rds$

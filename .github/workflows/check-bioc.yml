@@ -1,0 +1,96 @@
+## Continuous integration mirroring the checks run for Bioconductor
+## submission, on the current Bioconductor devel image: R CMD build, then
+## R CMD check and BiocCheck on the built tarball (as the Single Package
+## Builder does), plus BiocCheckGitClone on the repository itself. Build and
+## check output go to /tmp so that BiocCheck never scans its own output.
+name: check-bioc
+
+on:
+  push:
+    branches: [main, devel]
+  pull_request:
+    branches: [main, devel]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    container: bioconductor/bioconductor_docker:devel
+    name: ubuntu-bioc-devel
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # The workspace belongs to the runner user while container steps run as
+      # root; libgit2 (used by BiocCheckGitClone) refuses such a repository
+      # unless it is marked safe.
+      - name: Mark the workspace as a safe git directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Query dependencies
+        run: |
+          install.packages('remotes')
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE), '.deps.rds')
+        shell: Rscript {0}
+
+      - name: Cache R packages
+        uses: actions/cache@v5
+        with:
+          path: /usr/local/lib/R/site-library
+          key: ${{ runner.os }}-bioc-devel-${{ hashFiles('.deps.rds') }}
+          restore-keys: ${{ runner.os }}-bioc-devel-
+
+      - name: Install dependencies
+        run: |
+          remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories())
+          BiocManager::install(c('rcmdcheck', 'BiocCheck'), ask = FALSE, update = FALSE)
+        shell: Rscript {0}
+
+      - name: Build source tarball
+        run: |
+          rm -f .deps.rds
+          mkdir -p /tmp/build && cd /tmp/build
+          R CMD build "$GITHUB_WORKSPACE"
+          echo "PKG_TARBALL=$(ls -1 /tmp/build/*.tar.gz)" >> "$GITHUB_ENV"
+          ls -l /tmp/build
+
+      - name: R CMD check
+        run: |
+          rcmdcheck::rcmdcheck(
+            Sys.getenv('PKG_TARBALL'),
+            args = c('--no-manual', '--as-cran'),
+            error_on = 'warning',
+            check_dir = '/tmp/check')
+        shell: Rscript {0}
+
+      - name: BiocCheckGitClone
+        run: |
+          clone <- BiocCheck::BiocCheckGitClone('.')
+          stopifnot(clone$getNum('error') == 0L, clone$getNum('warning') == 0L)
+        shell: Rscript {0}
+
+      - name: BiocCheck
+        run: |
+          result <- BiocCheck::BiocCheck(
+            Sys.getenv('PKG_TARBALL'), checkDir = '/tmp/check',
+            `new-package` = TRUE)
+          stopifnot(result$getNum('error') == 0L, result$getNum('warning') == 0L)
+        shell: Rscript {0}
+
+      # 00check.log carries the bodies of NOTEs that stdout shows only as
+      # headlines; keep it, including on failure.
+      - name: Upload check results
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: check-results
+          path: |
+            /tmp/check/**/00check.log
+            /tmp/check/**/00install.out
+            /tmp/check/**/00BiocCheck.log
+          retention-days: 30
+          if-no-files-found: warn

@@ -4,8 +4,9 @@
 # scan when sourced. See DATA_SOURCES.md in the installed inst directory.
 #
 # Immutable resource: https://doi.org/10.5281/zenodo.21821764
-# Generation code and annotation snapshots:
-# https://github.com/Federico77z/PscanRBackgrounds/tree/7516eee
+# Generation code and annotation snapshots (pipeline repository, commit that
+# produced the v2 release):
+# https://github.com/Federico77z/PscanRBackgrounds-pipeline/tree/7516eee
 # Scanner commit recorded in every v2 catalog row:
 # https://github.com/Federico77z/PscanR/tree/47b59b6a3135a032e02fbd4eb5608397c5cd9005
 #
@@ -30,10 +31,12 @@
 # 6. Record annotation, promoter and motif hashes, source retrieval dates,
 #    scoring specification, scanner commit and runtime versions in catalog.tsv.
 # 7. Package the 105 v2 tables, normalized catalog, MANIFEST.sha256, README,
-#    license and citation into a deterministic ZIP. No full PSMatrixList scans
-#    or raw genome files are distributed in that ZIP.
+#    license and citation into a deterministic ZIP (the Zenodo record). No full
+#    PSMatrixList scans or raw genome files are distributed in that ZIP.
+# 8. Upload the 105 tables individually to ExperimentHub storage under
+#    PscanRBackgrounds/v2/ and describe them with inst/scripts/make-metadata.R.
 #
-# In a separate reproduction checkout with required genomes already installed:
+# In a checkout of the pipeline repository with the required genomes installed:
 #   Rscript scripts/backgrounds.R audit
 #   Rscript scripts/backgrounds.R plan --cores=1
 #   Rscript scripts/backgrounds.R all --cores=1

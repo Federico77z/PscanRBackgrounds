@@ -1,35 +1,58 @@
 #' Precomputed promoter backgrounds for PscanR
 #'
-#' PscanRBackgrounds provides ExperimentHub metadata and documentation for
-#' immutable promoter-background score distributions used by PscanR.
+#' PscanRBackgrounds provides ExperimentHub metadata and documentation for the
+#' precomputed promoter-background score distributions used by the PscanR
+#' motif enrichment package. Each background is a separate ExperimentHub
+#' resource; see \link{PscanRBackgrounds-resources} for their content and
+#' naming, and the package vignette for retrieval.
 #'
 #' @examples
 #' path <- system.file("extdata", "metadata.csv", package = "PscanRBackgrounds")
 #' metadata <- utils::read.csv(path)
-#' metadata[c("Title", "SourceVersion", "DispatchClass")]
+#' nrow(metadata)
+#' table(metadata$Species)
+#' @importFrom ExperimentHub ExperimentHub
 #' @keywords internal
 #' @name PscanRBackgrounds-package
-NULL
+#' @aliases PscanRBackgrounds
+"_PACKAGE"
 
 #' PscanR promoter backgrounds, version 2
 #'
-#' A ZIP archive containing 105 validated promoter-background score
-#' distributions for combinations of JASPAR 2020, 2022, and 2024, seven genome
-#' assemblies, and five promoter windows. The archive also contains the
-#' versioned resource catalog, SHA-256 manifest, citation information, and
-#' format documentation.
+#' One ExperimentHub resource per combination of JASPAR CORE release (2020,
+#' 2022, 2024), genome assembly (hg38, hs1, mm10, mm39, dm6, sacCer3, TAIR9)
+#' and promoter window (200u_50d, 450u_50d, 500u_0d, 950u_50d, 1000u_0d), for
+#' 105 resources in total.
 #'
-#' The resource uses ExperimentHub's `FilePath` dispatch and therefore returns
-#' the path to the cached ZIP archive. PscanR selects and validates the required
-#' background within the archive.
+#' For each motif of the JASPAR collection matching the organism's taxonomic
+#' group, PscanR scans every unique promoter sequence of the assembly over the
+#' given window, keeps the best normalized PWM score per promoter, and records
+#' the number of promoters with the mean and standard deviation of those
+#' scores. PscanR compares foreground promoters against these statistics.
 #'
-#' @format A cached file path to `PscanR_backgrounds_v2.zip`.
-#' @return A character scalar containing the path to the cached ZIP archive.
+#' @format Each resource is a tab-separated text file. The first line is the
+#'   header \code{[SHORT TFBS MATRIX]}; each following line holds a JASPAR
+#'   matrix identifier, the number of promoters, the mean score and the score
+#'   standard deviation. The resources use the \code{FilePath} dispatch class,
+#'   so retrieval returns the path to the locally cached file.
+#'
+#' @details Resource titles have the form
+#'   \code{PscanR_bg_v2_J<release>_<assembly>_<up>u_<down>d_<source>}, for
+#'   example \code{PscanR_bg_v2_J2020_hg38_200u_50d_UCSC}. The installed
+#'   \code{extdata/catalog_v2.tsv} lists, for every resource, the annotation
+#'   source and retrieval date, promoter, motif and annotation hashes, the
+#'   PscanR scanner version and commit, and the SHA-256 checksum of the file.
+#'   PscanR users normally retrieve a background with PscanR's own retrieval
+#'   function, which verifies that checksum.
+#'
 #' @section License:
-#' The derived background archive is distributed under CC BY 4.0. See the
-#' installed DATA_SOURCES.md for upstream attribution and generation sources.
+#' The backgrounds are distributed under CC BY 4.0. See the installed
+#' \code{DATA_SOURCES.md} for upstream attribution.
 #'
-#' @source \doi{10.5281/zenodo.21821764}
+#' @source Generated with the pipeline at
+#'   \url{https://github.com/Federico77z/PscanRBackgrounds-pipeline}; the same
+#'   files are archived in \doi{10.5281/zenodo.21821764}. See the installed
+#'   \code{scripts/make-data.R}.
 #' @references Zambelli F, Pesole G, Pavesi G. (2009). Pscan: finding
 #'   over-represented transcription factor binding site motifs in sequences
 #'   from co-regulated or co-expressed genes. Nucleic Acids Research.
@@ -38,11 +61,12 @@ NULL
 #' metadata <- utils::read.csv(system.file(
 #'     "extdata", "metadata.csv", package = "PscanRBackgrounds"
 #' ))
-#' metadata[c("Title", "SourceUrl", "DispatchClass")]
-#' # Requires the resource to be registered and access to ExperimentHub.
-#' if (interactive()) {
-#'     archive <- PscanR_backgrounds_v2()
-#'     archive
-#' }
-#' @name PscanR_backgrounds_v2
+#' head(metadata[c("Title", "Genome", "Species")])
+#' catalog <- utils::read.delim(system.file(
+#'     "extdata", "catalog_v2.tsv", package = "PscanRBackgrounds"
+#' ))
+#' table(catalog$assembly, catalog$jaspar_release)
+#' @name PscanRBackgrounds-resources
+#' @docType data
+#' @keywords datasets
 NULL

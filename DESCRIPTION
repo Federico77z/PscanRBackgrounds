@@ -12,12 +12,13 @@ Authors@R: c(
     person("Giulio", "Pavesi", role = "aut",
         comment = c(ORCID = "0000-0001-5705-6249"))
     )
-Description: Provides ExperimentHub metadata and documentation for immutable
+Description: Provides ExperimentHub metadata and documentation for the
     promoter-background score distributions used by PscanR transcription
-    factor binding motif enrichment analyses. Backgrounds cover JASPAR 2020,
-    2022, and 2024 motif collections, seven genome assemblies, and five
-    promoter windows. Resources are retrieved as a checksum-verifiable archive
-    through ExperimentHub from a version-specific Zenodo record.
+    factor binding motif enrichment analyses. Each of the 105 backgrounds is a
+    separate ExperimentHub resource, covering the JASPAR 2020, 2022 and 2024
+    CORE collections, seven genome assemblies of five organisms, and five
+    promoter windows. The same files are archived in a version-specific
+    Zenodo record.
 License: CC BY 4.0
 Encoding: UTF-8
 Depends: R (>= 4.6.0)
@@ -29,7 +30,7 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
-biocViews: ExperimentData, ExperimentHub, Genome
+biocViews: ExperimentHub, Genome, Homo_sapiens_Data, Mus_musculus_Data, Drosophila_melanogaster_Data, Saccharomyces_cerevisiae_Data, Arabidopsis_thaliana_Data
 VignetteBuilder: knitr
 URL: https://github.com/Federico77z/PscanRBackgrounds,
     https://doi.org/10.5281/zenodo.21821764

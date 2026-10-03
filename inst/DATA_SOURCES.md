@@ -18,6 +18,8 @@ assemblies. The release catalog records source versions and hashes. Source
 providers retain their own attribution and terms; the archive license does
 not relicense the raw source data. Before submission, maintainers must confirm
 reuse terms for the archived inputs, including historical TAIR9 GFF3 material
-retained in the generation repository.
+retained in the generation repository
+(https://github.com/Federico77z/PscanRBackgrounds-pipeline).
 
-See `scripts/make-data.R` for the generation recipe and immutable code links.
+See `scripts/make-data.R` for the generation recipe and immutable code links,
+and `scripts/make-metadata.R` for the ExperimentHub metadata.
