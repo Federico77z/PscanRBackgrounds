@@ -15,10 +15,12 @@ https://jaspar.elixir.no/faq/; retain collection and motif identifiers.
 Promoters use UCSC/NCBI RefSeq annotations for hg38, hs1, mm10, mm39 and dm6,
 TAIR9 for Arabidopsis and UCSC/SGD for sacCer3, with the matching BSgenome
 assemblies. The release catalog records source versions and hashes. Source
-providers retain their own attribution and terms; the archive license does
-not relicense the raw source data. Before submission, maintainers must confirm
-reuse terms for the archived inputs, including historical TAIR9 GFF3 material
-retained in the generation repository
+providers retain their own attribution and terms; the archive license does not
+relicense the raw source data. TAIR9 is a public TAIR release, also deposited
+in GenBank, and TAIR distributes its public data releases under CC BY 4.0,
+which permits reuse with attribution. This package distributes only derived
+score statistics, not TAIR or other upstream annotation files; the raw inputs
+used to generate the backgrounds are kept in the generation repository
 (https://github.com/Federico77z/PscanRBackgrounds-pipeline).
 
 See `scripts/make-data.R` for the generation recipe and immutable code links,

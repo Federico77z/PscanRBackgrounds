@@ -1,12 +1,13 @@
 # Development assistance
 
-OpenAI Codex assisted with the September 2026 submission-readiness changes:
-serial analysis defaults, offline retrieval regression tests, vignette examples,
-fixture preparation recipes, attribution documentation and CI configuration.
-Validation results and unresolved submission requirements are recorded in the
-workspace submission checklist. This statement records assistance in this
-change set; it does not certify the provenance of earlier contributions.
+AI coding assistants (OpenAI Codex and Anthropic Claude Code) were used in the
+development of PscanRBackgrounds, mainly to separate the ExperimentHub package
+from the background-generation pipeline, to write the metadata script and
+tests, to review the packaging against the Bioconductor guidelines, and to write
+and revise documentation (man pages, vignette, README and provenance notes). The
+background-generation method and the data are the authors'. Every AI-assisted
+change was reviewed, tested and accepted by the authors, who remain responsible
+for the package and its maintenance. No third-party code was copied into the
+package.
 
-Package authors retain responsibility for scientific validity, source rights,
-and review of all contributed code and text. Maintainers should include this
-assistance in the submission disclosure and verify the historical disclosure.
+Source files with substantial AI assistance carry an `Assisted-by:` note.

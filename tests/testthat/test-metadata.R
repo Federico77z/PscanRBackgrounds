@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code, review and documentation).
+# All changes were reviewed and tested by the authors.
+
 metadata_file <- function() {
     system.file("extdata", "metadata.csv", package = "PscanRBackgrounds")
 }

@@ -1,3 +1,6 @@
+# Assisted-by: OpenAI Codex and Claude Code (code, review and documentation).
+# All changes were reviewed and tested by the authors.
+
 #' Precomputed promoter backgrounds for PscanR
 #'
 #' PscanRBackgrounds provides ExperimentHub metadata and documentation for the

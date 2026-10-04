@@ -1,4 +1,6 @@
 #!/usr/bin/env Rscript
+# Assisted-by: OpenAI Codex and Claude Code (code, review and documentation).
+# All changes were reviewed and tested by the authors.
 # Build inst/extdata/metadata.csv: one ExperimentHub record per PscanR
 # version-2 promoter background listed in inst/extdata/catalog_v2.tsv.
 #

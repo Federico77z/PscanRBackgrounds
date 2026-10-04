@@ -1,3 +1,7 @@
+# PscanRBackgrounds 0.99.1
+
+- Documentation: AI-assistance statement and TAIR9 reuse terms.
+
 # PscanRBackgrounds 0.99.0
 
 - Initial Bioconductor submission: ExperimentHub metadata and documentation
