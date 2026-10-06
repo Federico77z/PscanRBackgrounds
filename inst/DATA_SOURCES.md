@@ -1,10 +1,10 @@
 # Resource license and source attribution
 
 The version-2 PscanR background archive is distributed under CC BY 4.0:
-https://creativecommons.org/licenses/by/4.0/.
-Credit Federico Zambelli and Giulio Pavesi and cite the immutable
-record https://doi.org/10.5281/zenodo.21821764. It contains computed promoter
-score distributions and a provenance catalog, not raw genome sequences. The
+https://creativecommons.org/licenses/by/4.0/. Credit Federico Zambelli, Diana
+Betelli and Giulio Pavesi and cite the immutable record
+https://doi.org/10.5281/zenodo.21821764. It contains computed promoter score
+distributions and a provenance catalog, not raw genome sequences. The
 ExperimentHub resources point at the same files in three Zenodo records, one
 per JASPAR release, under the same license:
 https://doi.org/10.5281/zenodo.23183695 (2020),

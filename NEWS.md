@@ -1,3 +1,8 @@
+# PscanRBackgrounds 0.99.3
+
+- Diana Betelli is credited in the data attribution and citation, as on
+  the Zenodo records.
+
 # PscanRBackgrounds 0.99.2
 
 - The background files are hosted on Zenodo, one record per JASPAR release;

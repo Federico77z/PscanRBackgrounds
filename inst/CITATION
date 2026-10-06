@@ -2,6 +2,7 @@ bibentry(
     bibtype = "Misc",
     title = "PscanR precomputed promoter backgrounds, version 2",
     author = c(person("Federico", "Zambelli"),
+               person("Diana", "Betelli"),
                person("Giulio", "Pavesi")),
     year = "2026",
     doi = "10.5281/zenodo.21821764",
