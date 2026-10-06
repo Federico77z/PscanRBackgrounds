@@ -53,8 +53,11 @@
 #' \code{DATA_SOURCES.md} for upstream attribution.
 #'
 #' @source Generated with the pipeline at
-#'   \url{https://github.com/Federico77z/PscanRBackgrounds-pipeline}; the same
-#'   files are archived in \doi{10.5281/zenodo.21821764}. See the installed
+#'   \url{https://github.com/Federico77z/PscanRBackgrounds-pipeline}. The
+#'   files are hosted on Zenodo, one record per JASPAR release
+#'   (\doi{10.5281/zenodo.23183695}, \doi{10.5281/zenodo.23183713},
+#'   \doi{10.5281/zenodo.23183720}), and archived together in
+#'   \doi{10.5281/zenodo.21821764}. See the installed
 #'   \code{scripts/make-data.R}.
 #' @references Zambelli F, Pesole G, Pavesi G. (2009). Pscan: finding
 #'   over-represented transcription factor binding site motifs in sequences

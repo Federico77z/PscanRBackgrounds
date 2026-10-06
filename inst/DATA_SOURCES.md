@@ -4,7 +4,12 @@ The version-2 PscanR background archive is distributed under CC BY 4.0:
 https://creativecommons.org/licenses/by/4.0/.
 Credit Federico Zambelli and Giulio Pavesi and cite the immutable
 record https://doi.org/10.5281/zenodo.21821764. It contains computed promoter
-score distributions and a provenance catalog, not raw genome sequences.
+score distributions and a provenance catalog, not raw genome sequences. The
+ExperimentHub resources point at the same files in three Zenodo records, one
+per JASPAR release, under the same license:
+https://doi.org/10.5281/zenodo.23183695 (2020),
+https://doi.org/10.5281/zenodo.23183713 (2022) and
+https://doi.org/10.5281/zenodo.23183720 (2024).
 
 Motifs originate from JASPAR CORE 2020, 2022 and 2024. Cite Fornes et al.
 (doi:10.1093/nar/gkz1001), Castro-Mondragon et al.

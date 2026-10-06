@@ -1,7 +1,7 @@
 Package: PscanRBackgrounds
 Type: Package
 Title: Precomputed Promoter Backgrounds for PscanR
-Version: 0.99.1
+Version: 0.99.2
 Authors@R: c(
     person("Federico", "Zambelli",
         email = "federico.zambelli@unimi.it",
@@ -17,8 +17,8 @@ Description: Provides ExperimentHub metadata and documentation for the
     factor binding motif enrichment analyses. Each of the 105 backgrounds is a
     separate ExperimentHub resource, covering the JASPAR 2020, 2022 and 2024
     CORE collections, seven genome assemblies of five organisms, and five
-    promoter windows. The same files are archived in a version-specific
-    Zenodo record.
+    promoter windows. The files are hosted on Zenodo, one record per JASPAR
+    release, and archived together in a version-specific Zenodo record.
 License: CC BY 4.0
 Encoding: UTF-8
 Depends: R (>= 4.6.0)

@@ -1,3 +1,9 @@
+# PscanRBackgrounds 0.99.2
+
+- The background files are hosted on Zenodo, one record per JASPAR release;
+  the ExperimentHub metadata points at them (`Location_Prefix`,
+  `RDataPath`) and targets Bioconductor 3.24.
+
 # PscanRBackgrounds 0.99.1
 
 - Documentation: AI-assistance statement and TAIR9 reuse terms.

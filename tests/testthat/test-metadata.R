@@ -18,7 +18,8 @@ test_that("metadata has one valid record per catalogued background", {
     expect_setequal(
         basename(metadata$RDataPath), basename(catalog$artifact)
     )
-    expect_true(all(startsWith(metadata$RDataPath, "PscanRBackgrounds/v2/")))
+    expect_true(all(metadata$Location_Prefix == "https://zenodo.org/"))
+    expect_true(all(grepl("^records/[0-9]+/files/", metadata$RDataPath)))
     expect_true(all(metadata$DispatchClass == "FilePath"))
     expect_true(all(metadata$SourceType == "TXT"))
     expect_false(anyNA(metadata$Species))
@@ -44,4 +45,19 @@ test_that("titles encode the catalogued background", {
     metadata <- utils::read.csv(metadata_file(), stringsAsFactors = FALSE)
     stem <- sub("\\.psbg2\\.txt$", "", basename(metadata$RDataPath))
     expect_identical(metadata$Title, paste0("PscanR_bg_v2_", stem))
+})
+
+test_that("each JASPAR release is served from its own Zenodo record", {
+    metadata <- utils::read.csv(metadata_file(), stringsAsFactors = FALSE)
+    release <- sub("^J([0-9]{4})_.*", "\\1", basename(metadata$RDataPath))
+    record <- sub("^records/([0-9]+)/files/.*", "\\1", metadata$RDataPath)
+    expect_identical(
+        unname(c("2020" = "23183695", "2022" = "23183713",
+            "2024" = "23183720")[release]),
+        record
+    )
+    expect_identical(
+        metadata$SourceUrl, paste0("https://doi.org/10.5281/zenodo.", record)
+    )
+    expect_true(all(table(record) == 35L))
 })

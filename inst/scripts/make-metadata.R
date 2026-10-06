@@ -4,9 +4,10 @@
 # Build inst/extdata/metadata.csv: one ExperimentHub record per PscanR
 # version-2 promoter background listed in inst/extdata/catalog_v2.tsv.
 #
-# The background files are uploaded to Bioconductor's ExperimentHub storage
-# under PscanRBackgrounds/v2/. The same files are archived, as a single ZIP,
-# in the immutable Zenodo record https://doi.org/10.5281/zenodo.21821764.
+# The background files are hosted on Zenodo, one record per JASPAR release
+# (35 files each), and each Hub record points at its file there. The same
+# files are also archived, as a single ZIP, in the Zenodo record
+# https://doi.org/10.5281/zenodo.21821764.
 #
 # Run from the package root:  Rscript inst/scripts/make-metadata.R
 
@@ -51,6 +52,11 @@ provider <- c(
     TAIR9 = "JASPAR; TAIR"
 )
 
+# Zenodo records holding the individual version-2 files, by JASPAR release.
+zenodo_record <- c("2020" = "23183695", "2022" = "23183713", "2024" = "23183720")
+record <- unname(zenodo_record[catalog$jaspar_release])
+stopifnot(!anyNA(record))
+
 file <- basename(catalog$artifact)
 stem <- sub("\\.psbg[0-9]+\\.txt$", "", file)
 assembly <- catalog$assembly
@@ -70,10 +76,10 @@ metadata <- data.frame(
         " annotation). Tab-separated text: motif identifier, number of ",
         "promoters, mean and standard deviation of the best PscanR score."
     ),
-    BiocVersion = "3.25",
+    BiocVersion = "3.24",
     Genome = assembly,
     SourceType = "TXT",
-    SourceUrl = "https://doi.org/10.5281/zenodo.21821764",
+    SourceUrl = paste0("https://doi.org/10.5281/zenodo.", record),
     SourceVersion = catalog$background_version,
     Species = organism,
     TaxonomyId = unname(taxonomy[organism]),
@@ -82,7 +88,8 @@ metadata <- data.frame(
     Maintainer = "Federico Zambelli <federico.zambelli@unimi.it>",
     RDataClass = "character",
     DispatchClass = "FilePath",
-    RDataPath = paste0("PscanRBackgrounds/v2/", file),
+    RDataPath = paste0("records/", record, "/files/", file),
+    Location_Prefix = "https://zenodo.org/",
     Tags = paste(
         "PscanR", "Promoter", "TFBS", paste0("JASPAR", catalog$jaspar_release),
         assembly, window, sep = ":"

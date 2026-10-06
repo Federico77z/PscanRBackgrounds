@@ -13,8 +13,12 @@ package provides that distribution for 105 combinations of:
 - promoter windows `200u_50d`, `450u_50d`, `500u_0d`, `950u_50d` and
   `1000u_0d` (bp upstream and downstream of the TSS).
 
-Each background is a separate ExperimentHub resource. The same files are
-archived in the Zenodo record <https://doi.org/10.5281/zenodo.21821764>.
+Each background is a separate ExperimentHub resource. The files are hosted on
+Zenodo, in one record per JASPAR release:
+[2020](https://doi.org/10.5281/zenodo.23183695),
+[2022](https://doi.org/10.5281/zenodo.23183713) and
+[2024](https://doi.org/10.5281/zenodo.23183720). All 105 files are also
+archived as a single ZIP in <https://doi.org/10.5281/zenodo.21821764>.
 
 ## Installation
 

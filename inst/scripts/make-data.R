@@ -33,8 +33,9 @@
 # 7. Package the 105 v2 tables, normalized catalog, MANIFEST.sha256, README,
 #    license and citation into a deterministic ZIP (the Zenodo record). No full
 #    PSMatrixList scans or raw genome files are distributed in that ZIP.
-# 8. Upload the 105 tables individually to ExperimentHub storage under
-#    PscanRBackgrounds/v2/ and describe them with inst/scripts/make-metadata.R.
+# 8. Deposit the 105 tables individually on Zenodo, one record per JASPAR
+#    release (10.5281/zenodo.23183695, .23183713, .23183720), and describe
+#    them with inst/scripts/make-metadata.R.
 #
 # In a checkout of the pipeline repository with the required genomes installed:
 #   Rscript scripts/backgrounds.R audit
