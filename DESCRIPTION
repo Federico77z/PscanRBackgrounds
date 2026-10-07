@@ -1,7 +1,7 @@
 Package: PscanRBackgrounds
 Type: Package
 Title: Precomputed Promoter Backgrounds for PscanR
-Version: 0.99.3
+Version: 0.99.4
 Authors@R: c(
     person("Federico", "Zambelli",
         email = "federico.zambelli@unimi.it",

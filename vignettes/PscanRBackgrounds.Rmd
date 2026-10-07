@@ -81,10 +81,11 @@ catalog[1, c("artifact", "motif_count", "promoter_count",
 Each resource uses the `FilePath` dispatch class: retrieval downloads the
 text file once, caches it, and returns its local path.
 
-```{r access, eval=FALSE}
+```{r access, message=FALSE}
 library(ExperimentHub)
 eh <- ExperimentHub()
 backgrounds <- query(eh, "PscanRBackgrounds")
+length(backgrounds)
 hg38 <- query(backgrounds, c("hg38", "JASPAR2020", "200u_50d"))
 hg38
 path <- hg38[[1]]

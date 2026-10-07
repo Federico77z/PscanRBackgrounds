@@ -1,3 +1,8 @@
+# PscanRBackgrounds 0.99.4
+
+- The vignette retrieves a background through ExperimentHub, now that the
+  105 records are available (EH10543-EH10647).
+
 # PscanRBackgrounds 0.99.3
 
 - Diana Betelli is credited in the data attribution and citation, as on
