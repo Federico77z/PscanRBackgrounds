@@ -37,5 +37,10 @@ Authors:
   \item Giulio Pavesi (\href{https://orcid.org/0000-0001-5705-6249}{ORCID})
 }
 
+Other contributors:
+\itemize{
+  \item Italy's National Recovery and Resilience Plan (PNRR) (project ELIXIRNextGenIT, R0000010) [funder]
+}
+
 }
 \keyword{internal}

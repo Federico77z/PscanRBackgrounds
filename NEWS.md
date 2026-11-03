@@ -1,3 +1,8 @@
+# PscanRBackgrounds 0.99.5
+
+- Changes from the Bioconductor review: the funder is listed in `Authors@R`,
+  and the metadata tests locate the installed files with plain variables.
+
 # PscanRBackgrounds 0.99.4
 
 - The vignette retrieves a background through ExperimentHub, now that the

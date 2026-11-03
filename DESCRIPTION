@@ -1,7 +1,7 @@
 Package: PscanRBackgrounds
 Type: Package
 Title: Precomputed Promoter Backgrounds for PscanR
-Version: 0.99.4
+Version: 0.99.5
 Authors@R: c(
     person("Federico", "Zambelli",
         email = "federico.zambelli@unimi.it",
@@ -10,7 +10,9 @@ Authors@R: c(
     person("Diana", "Betelli", role = "aut",
         comment = c(ORCID = "0009-0007-6207-7715")),
     person("Giulio", "Pavesi", role = "aut",
-        comment = c(ORCID = "0000-0001-5705-6249"))
+        comment = c(ORCID = "0000-0001-5705-6249")),
+    person("Italy's National Recovery and Resilience Plan (PNRR)",
+        role = "fnd", comment = "project ELIXIRNextGenIT, R0000010")
     )
 Description: Provides ExperimentHub metadata and documentation for the
     promoter-background score distributions used by PscanR transcription
@@ -35,5 +37,5 @@ VignetteBuilder: knitr
 URL: https://github.com/Federico77z/PscanRBackgrounds,
     https://doi.org/10.5281/zenodo.21821764
 BugReports: https://github.com/Federico77z/PscanRBackgrounds/issues
-RoxygenNote: 8.0.0
+Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
