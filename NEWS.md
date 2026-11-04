@@ -1,3 +1,8 @@
+# PscanRBackgrounds 0.99.6
+
+- No changes; rebuild after a transient download failure on the build
+  system.
+
 # PscanRBackgrounds 0.99.5
 
 - Changes from the Bioconductor review: the funder is listed in `Authors@R`,
