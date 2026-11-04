@@ -10,10 +10,21 @@ on:
 permissions:
   contents: read
 jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+    steps:
+      - id: sha
+        run: |
+          sha=$(git ls-remote "https://github.com/${{ github.repository }}" refs/heads/debug-hub | cut -f1)
+          echo "debug-hub is at $sha"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
   build:
+    needs: resolve
     uses: r-universe-org/workflows/.github/workflows/build.yml@v3
     with:
       universe: bioc
       organization: bioconductor
-      ref: debug-hub
+      ref: ${{ needs.resolve.outputs.sha }}
       skip: linux windows macos wasm
