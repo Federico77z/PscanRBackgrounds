@@ -1,0 +1,19 @@
+# Temporary: build the debug-hub branch on the R-universe Bioconductor stack
+# once a day, to see when the BiocFileCache 3.3.1 checksum-sidecar problem
+# ("Invalid sha256 checksum file." for every ExperimentHub download) is fixed
+# on Bioconductor devel. Remove this file once the build passes again.
+name: Hub download watch
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    uses: r-universe-org/workflows/.github/workflows/build.yml@v3
+    with:
+      universe: bioc
+      organization: bioconductor
+      ref: debug-hub
+      skip: linux windows macos wasm
